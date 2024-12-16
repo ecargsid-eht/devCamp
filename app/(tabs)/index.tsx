@@ -1,70 +1,99 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet } from "react-native";
+import { Avatar, Text, View, Image, XStack } from "tamagui";
+import { SafeAreaView } from "react-native-safe-area-context";
+import WritePost from "../../components/WritePost";
+import { FlatList } from "react-native";
+import FeedPost from "../../components/FeedPost";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { CampContext } from "../ctx/CampContext";
 
 export default function HomeScreen() {
+  const {colorScheme} = useContext(CampContext);
+  const [feed, setFeed] = useState<any>([])
+
+  useEffect(() => {
+    fetch("https://dummyjson.com/posts")
+      .then(async (res) => {
+        const data = await res.json();
+        setFeed(() => data.posts);
+      })
+  },[])
+
+  const renderItem = useCallback(
+    ({ item, index }:{item:any, index:any}) => (
+      <FeedPost
+        user={"ecargsid_eht"}
+        postCaption={item.body}
+        key={index}
+        colorScheme={colorScheme}
+      />
+    ),
+    []
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView>
+      <View style={styles.mainContainer}>
+        <View style={styles.topContainer}>
+          <XStack gap={5}>
+            <Image
+              source={{
+                uri: require("@/assets/images/logocamp.png"),
+                width: 30,
+                height: 30,
+              }}
+            />
+            <Text style={{ fontFamily: "PoppinsBold", fontSize: 22 }}>
+              Camp
+            </Text>
+          </XStack>
+          <Avatar circular size="$medium">
+            <Avatar.Image
+              src={
+                "https://images.unsplash.com/photo-1548142813-c348350df52b?&w=150&h=150&dpr=2&q=80"
+              }
+            />
+          </Avatar>
+        </View>
+        <FlatList
+          ListHeaderComponent={
+            <>
+              <WritePost colorScheme={colorScheme} />
+              <View height={1} />
+            </>
+          }
+          data={feed}
+          initialNumToRender={5}
+          refreshing={false}
+          onRefresh={() => console.log("refreshing")}
+          maxToRenderPerBatch={5}
+          windowSize={5}
+          renderItem={renderItem}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  mainContainer: {
+    margin: 15,
   },
-  stepContainer: {
+  topContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    marginBottom: 8,
   },
   reactLogo: {
     height: 178,
     width: 290,
     bottom: 0,
     left: 0,
-    position: 'absolute',
+    position: "absolute",
   },
 });
